@@ -1,0 +1,49 @@
+/*
+Style: Modern, clean, and minimalistic look
+- Use a light background
+- Rounded corners and subtle shadows for chart containers
+- Responsive layout with flexbox
+- Clear, readable fonts
+- Padding and spacing for visual comfort
+*/
+body {
+  margin: 0;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  background: #f7f9fb;
+  color: #222;
+}
+.main-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+.chart-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding: 1.5rem;
+  min-width: 320px;
+  flex: 1 1 400px;
+  max-width: 600px;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s;
+}
+.chart-container:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+@media (max-width: 900px) {
+  .main-container {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+  .chart-container {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
