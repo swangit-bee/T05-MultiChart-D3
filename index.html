@@ -13,13 +13,44 @@
   <header>
     <h1>TV Energy Consumption & Power Prices</h1>
     <p>Data visualisation exercise (COS30045)</p>
+    <div class="intro-text">
+      <p>This interactive dashboard explores the relationship between television energy consumption patterns and electricity spot prices in Australia. 
+      As consumer electronics continue to evolve, understanding the energy efficiency of different screen technologies and their long-term cost implications 
+      becomes increasingly important for both consumers and policymakers.</p>
+      <p>The visualizations below analyze data from various TV models and Australian electricity markets, 
+      providing insights into energy consumption trends across different screen technologies and sizes, 
+      as well as historical power pricing patterns from 1998 to 2024.</p>
+    </div>
   </header>
 
   <div class="main-container">
-    <div id="scatter-chart" class="chart-container">Scatter Chart Placeholder</div>
-    <div id="donut-chart" class="chart-container">Donut Chart:Energy Consumption by Screen Tech (All Sizes)</div>
-    <div id="bar-chart" class="chart-container">Bar Chart:55"Tv's-Energy by Screen Tech</div>
-    <div id="line-chart" class="chart-container">Line Chart:Average Price Over Years</div>
+    <div class="chart-wrapper">
+      <h2>Scatter Plot: Energy Consumption vs Star Rating</h2>
+      <p class="chart-description">This scatter plot shows the relationship between star ratings and energy consumption across all TV models. 
+      Each point represents a TV, colored by screen technology (LCD, LED, OLED). Higher star ratings generally indicate better energy efficiency.</p>
+      <div id="scatter-chart" class="chart-container"></div>
+    </div>
+    
+    <div class="chart-wrapper">
+      <h2>Donut Chart: Energy Consumption by Screen Technology</h2>
+      <p class="chart-description">This donut chart compares the average energy consumption across different screen technologies for all TV sizes combined. 
+      The visualization helps identify which technologies are most energy-efficient overall.</p>
+      <div id="donut-chart" class="chart-container"></div>
+    </div>
+    
+    <div class="chart-wrapper">
+      <h2>Bar Chart: 55-inch TV Energy Consumption</h2>
+      <p class="chart-description">This bar chart focuses specifically on 55-inch televisions, comparing energy consumption across different screen technologies. 
+      This size-specific analysis helps consumers make informed decisions when shopping for large TVs.</p>
+      <div id="bar-chart" class="chart-container"></div>
+    </div>
+    
+    <div class="chart-wrapper">
+      <h2>Line Chart: Australian Spot Power Prices (1998-2024)</h2>
+      <p class="chart-description">This line chart tracks the average spot power prices in Australia over more than two decades. 
+      Understanding price trends helps contextualize the cost savings potential of energy-efficient appliances.</p>
+      <div id="line-chart" class="chart-container"></div>
+    </div>
     
     
   </div>

@@ -1,114 +1,118 @@
 // =======================
-// DONUT CHART
-// Energy Consumption by Screen Technology (All TVs)
+// DONUT CHART (clean, responsive)
+// Uses: data/Ex5_TV_energy_55inchtv_byScreenType.csv
 // =======================
 
-const donutWidth = 400, donutHeight = 400, donutMargin = 40;
-const donutRadius = Math.min(donutWidth, donutHeight) / 2 - donutMargin;
+function renderDonutChart(data) {
+    // clear
+    d3.select("#donut-chart").selectAll("*").remove();
 
-// Create a container for the chart and legend
-const donutChartContainer = d3.select("#donut-chart")
-  .style("display", "flex")
-  .style("flexDirection", "column")
-  .style("alignItems", "center");
+    // normalize
+    data = data.map(d => ({ tech: d.tech, energy: +d.energy }));
+    const total = d3.sum(data, d => d.energy);
+    if (total === 0) {
+        d3.select("#donut-chart").append("div").text("No data");
+        return;
+    }
 
-const donutSvg = donutChartContainer
-  .append("svg")
-    .attr("viewBox", `0 0 ${donutWidth} ${donutHeight}`)
-    .attr("preserveAspectRatio", "xMidYMid meet")
-  .append("g")
-    .attr("transform", `translate(${donutWidth / 2},${donutHeight / 2})`);
+    const container = d3.select("#donut-chart");
+    const maxWidth = Math.min(container.node().offsetWidth || 360, 360);
+    const width = Math.max(260, maxWidth);
+    const height = Math.round(width * 0.78);
+    const margin = { top: 36, right: 18, bottom: 18, left: 18 };
 
-// Legend container (below chart)
-const legendContainer = donutChartContainer
-  .append("div")
-  .attr("class", "donut-legend")
-  .style("marginTop", "20px")
-  .style("display", "flex")
-  .style("justifyContent", "center");
+    const legendOnRight = width >= 330;
+    const svg = container.append("svg").attr("width", width).attr("height", height)
+        .attr("role", "img").attr("aria-label", "Donut chart of mean energy by screen technology (55-inch TVs)");
 
-// Load data
-// CSV columns: Screen_Tech, Mean(Labelled energy consumption (kWh/year))
-d3.csv("data/Ex5_TV_energy_Allsizes_byScreenType.csv").then(data => {
-  // Prepare data
-  const chartData = {};
-  let total = 0;
-  data.forEach(d => {
-    chartData[d.Screen_Tech] = +d["Mean(Labelled energy consumption (kWh/year))"];
-    total += +d["Mean(Labelled energy consumption (kWh/year))"];
-  });
+    svg.append("text").attr("x", width / 2).attr("y", 20).attr("text-anchor", "middle")
+        .attr("font-weight", "700").attr("fill", "#222").attr("font-size", 14)
+        .text('Mean energy by screen tech (55\")');
 
-  // Color scale
-  const color = d3.scaleOrdinal()
-    .domain(Object.keys(chartData))
-    .range(d3.schemeCategory10);
+    const legendWidth = legendOnRight ? 120 : 0;
+    const drawW = width - margin.left - margin.right - legendWidth;
+    const drawH = height - margin.top - margin.bottom;
+    const cx = margin.left + Math.round(drawW / 2);
+    const cy = margin.top + Math.round(drawH / 2);
 
-  // Pie generator
-  const pie = d3.pie()
-    .value(d => d[1]);
+    const radius = Math.min(drawW, drawH) / 2 * 0.95;
+    const inner = radius * 0.55;
 
-  const data_ready = pie(Object.entries(chartData));
+    const g = svg.append("g").attr("transform", `translate(${cx},${cy})`);
 
-  // Arc generator
-  const arc = d3.arc()
-    .innerRadius(donutRadius * 0.6)
-    .outerRadius(donutRadius);
+    const color = d3.scaleOrdinal().domain(data.map(d => d.tech))
+        .range(["#2ecc71", "#3498db", "#f39c12", "#9b59b6", "#e74c3c"]);
 
-  // Draw arcs
-  donutSvg.selectAll('path')
-    .data(data_ready)
-    .enter()
-    .append('path')
-      .attr('d', arc)
-      .attr('fill', d => color(d.data[0]))
-      .attr('stroke', '#fff')
-      .style('stroke-width', '2px')
-      .style('opacity', 0.85);
+    const pie = d3.pie().sort(null).value(d => d.energy);
+    const arcs = pie(data);
 
-  // Add labels: Technology only
-  donutSvg.selectAll('text')
-    .data(data_ready)
-    .enter()
-    .append('text')
-      .text(d => d.data[0])
-      .attr('transform', d => `translate(${arc.centroid(d)})`)
-      .style('text-anchor', 'middle')
-      .style('font-size', '15px')
-      .style('fill', '#222');
+    const arc = d3.arc().innerRadius(inner).outerRadius(radius);
+    const labelArc = d3.arc().innerRadius(inner + (radius - inner) * 0.5).outerRadius(inner + (radius - inner) * 0.5);
 
-  // Tooltip
-  const tooltip = d3.select('body').append('div')
-    .style('position', 'absolute')
-    .style('background', 'white')
-    .style('padding', '6px 12px')
-    .style('border', '1px solid #ccc')
-    .style('border-radius', '6px')
-    .style('visibility', 'hidden');
+    const tooltip = container.append("div").attr("class", "tooltip")
+        .style("opacity", 0).style("position", "absolute").style("background", "#fff")
+        .style("border", "1px solid #ccc").style("padding", "6px 10px").style("border-radius", "4px");
 
-  donutSvg.selectAll('path')
-    .on('mouseover', (event, d) => {
-      tooltip.html(
-        `<b>${d.data[0]}</b><br>${d.data[1].toFixed(1)} kWh/year<br>${((d.data[1]/total)*100).toFixed(1)}% of total`
-      )
-      .style('visibility', 'visible');
-    })
-    .on('mousemove', event => {
-      tooltip
-        .style('top', (event.pageY - 20) + 'px')
-        .style('left', (event.pageX + 10) + 'px');
-    })
-    .on('mouseout', () => tooltip.style('visibility', 'hidden'));
+    g.selectAll("path.slice").data(arcs).enter().append("path").attr("class", "slice")
+        .attr("d", arc).attr("fill", d => color(d.data.tech)).attr("stroke", "#fff").attr("stroke-width", 1.5)
+        .on("mouseover", function (event, d) {
+            d3.select(this).attr("opacity", 0.95);
+            tooltip.transition().duration(120).style("opacity", 1);
+            const pct = (d.data.energy / total * 100).toFixed(1);
+            tooltip.html(`<strong>${d.data.tech}</strong><br>${d.data.energy.toFixed(1)} kWh/yr — ${pct}%`)
+                .style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 28) + "px");
+        })
+        .on("mousemove", function (event) {
+            tooltip.style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function () {
+            d3.select(this).attr("opacity", 1);
+            tooltip.transition().duration(150).style("opacity", 0);
+        });
 
-  // Legend
-  legendContainer.selectAll('div')
-    .data(data_ready)
-    .enter()
-    .append('div')
-      .style('display', 'flex')
-      .style('alignItems', 'center')
-      .style('marginRight', '20px')
-      .html(d => `
-        <span style="display:inline-block;width:16px;height:16px;background:${color(d.data[0])};margin-right:8px;border-radius:3px;"></span>
-        <span>${d.data[0]}: ${d.data[1].toFixed(1)} kWh/year (${((d.data[1]/total)*100).toFixed(1)}%)</span>
-      `);
-});
+    // percent labels > 5%
+    g.selectAll("text.slice-label").data(arcs).enter().append("text")
+        .attr("class", "slice-label")
+        .attr("transform", d => `translate(${labelArc.centroid(d)})`)
+        .attr("text-anchor", "middle").attr("font-size", 11).attr("fill", "#111").attr("font-weight", 600)
+        .text(d => {
+            const pct = d.data.energy / total * 100;
+            return pct >= 5 ? `${Math.round(pct)}%` : "";
+        });
+
+    // legend
+    const legend = svg.append("g").attr("class", "legend");
+    if (legendOnRight) {
+        const lx = width - legendWidth + 8; const ly = margin.top + 6;
+        legend.attr("transform", `translate(${lx},${ly})`);
+        const item = legend.selectAll("g").data(data).enter().append("g").attr("transform", (d, i) => `translate(0, ${i * 22})`);
+        item.append("rect").attr("width", 14).attr("height", 14).attr("fill", d => color(d.tech)).attr("rx", 2);
+        item.append("text").attr("x", 18).attr("y", 11).attr("font-size", 12).text(d => `${d.tech} (${Math.round(d.energy)} kWh/yr)`);
+    } else {
+        const lx = margin.left; const ly = height - margin.bottom - 20;
+        legend.attr("transform", `translate(${lx},${ly})`);
+        const item = legend.selectAll("g").data(data).enter().append("g").attr("transform", (d, i) => `translate(${i * (width / data.length)},0)`);
+        item.append("rect").attr("width", 12).attr("height", 12).attr("fill", d => color(d.tech)).attr("rx", 2);
+        item.append("text").attr("x", 16).attr("y", 11).attr("font-size", 11).text(d => d.tech);
+    }
+}
+
+// loader + redraw on resize (debounced)
+function loadAndRenderDonutChart() {
+    d3.csv("data/Ex5_TV_energy_55inchtv_byScreenType.csv", d => ({
+        tech: d['Screen_Tech'], energy: +d['Mean(Labelled energy consumption (kWh/year))']
+    })).then(raw => {
+        renderDonutChart(raw);
+        let t;
+        window.addEventListener("resize", () => {
+            clearTimeout(t);
+            t = setTimeout(() => renderDonutChart(raw), 120);
+        });
+    }).catch(err => {
+        d3.select("#donut-chart").append("div").text("Failed to load donut data");
+        console.error(err);
+    });
+}
+
+loadAndRenderDonutChart();
+

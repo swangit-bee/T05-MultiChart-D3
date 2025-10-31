@@ -1,100 +1,83 @@
-// =======================
-// BAR CHART
-// Energy Consumption by Screen Technology (55-inch TVs)
-// =======================
+// Responsive Bar Chart (Average Energy Consumption by Screen Technology)
+// Uses: data/Ex5_TV_energy_Allsizes_byScreenType.csv
 
-const barWidth = 400, barHeight = 400, barMargin = { top: 40, right: 30, bottom: 60, left: 70 };
-const barW = barWidth - barMargin.left - barMargin.right;
-const barH = barHeight - barMargin.top - barMargin.bottom;
+function renderBarChart(data) {
+    // clear container
+    const container = d3.select("#bar-chart");
+    container.selectAll("*").remove();
 
-const barSvg = d3.select("#bar-chart")
-  .append("svg")
-    .attr("viewBox", `0 0 ${barWidth} ${barHeight}`)
-    .attr("preserveAspectRatio", "xMidYMid meet")
-  .append("g")
-    .attr("transform", `translate(${barMargin.left},${barMargin.top})`);
+    const node = container.node();
+    const width = node && node.offsetWidth ? node.offsetWidth : 480;
+    const height = Math.round(width * 0.6);
 
-// Load data
-// CSV columns: Screen_Tech, Mean(Labelled energy consumption (kWh/year))
-d3.csv("data/Ex5_TV_energy_55inchtv_byScreenType.csv").then(data => {
-  // Prepare data
-  data.forEach(d => {
-    d.energy = +d["Mean(Labelled energy consumption (kWh/year))"];
-  });
+    const margin = { top: 30, right: 30, bottom: 60, left: 70 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
 
-  // X scale
-  const x = d3.scaleBand()
-    .domain(data.map(d => d.Screen_Tech))
-    .range([0, barW])
-    .padding(0.3);
+    // sort descending
+    data.sort((a, b) => b.energy - a.energy);
 
-  // Y scale
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d.energy) + 50])
-    .range([barH, 0]);
+    const svg = container.append("svg").attr("width", width).attr("height", height);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  // Color scale
-  const color = d3.scaleOrdinal()
-    .domain(data.map(d => d.Screen_Tech))
-    .range(d3.schemeCategory10);
+    const x = d3.scaleBand().domain(data.map(d => d.tech)).range([0, innerWidth]).padding(0.2);
+    const y = d3.scaleLinear().domain([0, d3.max(data, d => d.energy) * 1.1]).range([innerHeight, 0]);
 
-  // X Axis
-  barSvg.append("g")
-    .attr("transform", `translate(0,${barH})`)
-    .call(d3.axisBottom(x));
+    // axes
+    g.append("g").attr("transform", `translate(0,${innerHeight})`).call(d3.axisBottom(x))
+      .selectAll("text").attr("transform", "rotate(-20)").style("text-anchor", "end");
+    g.append("g").call(d3.axisLeft(y));
 
-  // Y Axis
-  barSvg.append("g")
-    .call(d3.axisLeft(y));
+    // axis labels
+    g.append("text").attr("x", innerWidth / 2).attr("y", innerHeight + 45).attr("text-anchor", "middle")
+      .attr("fill", "#333").attr("font-size", "13px").text("Screen Technology");
+    g.append("text").attr("transform", "rotate(-90)").attr("x", -innerHeight / 2).attr("y", -55)
+      .attr("text-anchor", "middle").attr("fill", "#333").attr("font-size", "13px")
+      .text("Mean Energy Consumption (kWh/year)");
 
-  // Bars
-  barSvg.selectAll("rect")
-    .data(data)
-    .enter()
-    .append("rect")
-      .attr("x", d => x(d.Screen_Tech))
-      .attr("y", d => y(d.energy))
-      .attr("width", x.bandwidth())
-      .attr("height", d => barH - y(d.energy))
-      .attr("fill", d => color(d.Screen_Tech))
-      .style("opacity", 0.85);
+    // bars
+    g.selectAll(".bar").data(data).enter().append("rect").attr("class", "bar")
+      .attr("x", d => x(d.tech)).attr("y", d => y(d.energy)).attr("width", x.bandwidth())
+      .attr("height", d => innerHeight - y(d.energy)).attr("fill", "#27ae60").attr("opacity", 0.8);
 
-  // Labels
-  barSvg.append("text")
-    .attr("x", barW / 2)
-    .attr("y", barH + 45)
-    .attr("text-anchor", "middle")
-    .style("font-size", "14px")
-    .text("Screen Technology");
+    // tooltip appended to container
+    const tooltip = container.append("div").attr("class", "tooltip")
+      .style("opacity", 0).style("position", "absolute").style("background", "#fff")
+      .style("border", "1px solid #ccc").style("padding", "6px 10px").style("border-radius", "4px")
+      .style("pointer-events", "none").style("font-size", "13px");
 
-  barSvg.append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("x", -barH / 2)
-    .attr("y", -50)
-    .attr("text-anchor", "middle")
-    .style("font-size", "14px")
-    .text("Energy Consumption (kWh/year)");
+    g.selectAll(".bar")
+      .on("mouseover", function(event, d) {
+        tooltip.transition().duration(150).style("opacity", 1);
+        tooltip.html(`<strong>${d.tech}</strong><br>Mean Energy: ${d.energy.toFixed(1)} kWh/year`)
+          .style("left", (event.offsetX + 20) + "px").style("top", (event.offsetY - 10) + "px");
+        d3.select(this).attr("stroke", "#222").attr("stroke-width", 2);
+      })
+      .on("mousemove", function(event) {
+        tooltip.style("left", (event.offsetX + 20) + "px").style("top", (event.offsetY - 10) + "px");
+      })
+      .on("mouseout", function() {
+        tooltip.transition().duration(200).style("opacity", 0);
+        d3.select(this).attr("stroke", "none");
+      });
+}
 
-  // Tooltip
-  const tooltip = d3.select("body").append("div")
-    .style("position", "absolute")
-    .style("background", "white")
-    .style("padding", "6px 12px")
-    .style("border", "1px solid #ccc")
-    .style("border-radius", "6px")
-    .style("visibility", "hidden");
+// load and render
+function loadAndRenderBarChart() {
+    d3.csv("data/Ex5_TV_energy_Allsizes_byScreenType.csv", d => ({
+        tech: d['Screen_Tech'],
+        energy: +d['Mean(Labelled energy consumption (kWh/year))']
+    })).then(data => {
+        renderBarChart(data);
+        let t;
+        window.addEventListener("resize", () => {
+            clearTimeout(t);
+            t = setTimeout(() => renderBarChart(data), 120);
+        });
+    }).catch(err => {
+        d3.select("#bar-chart").append("div").text("Failed to load bar chart data");
+        console.error(err);
+    });
+}
 
-  barSvg.selectAll("rect")
-    .on("mouseover", (event, d) => {
-      tooltip.html(
-        `<b>${d.Screen_Tech}</b><br>${d.energy.toFixed(1)} kWh/year`
-      )
-      .style("visibility", "visible");
-    })
-    .on("mousemove", event => {
-      tooltip
-        .style("top", (event.pageY - 20) + "px")
-        .style("left", (event.pageX + 10) + "px");
-    })
-    .on("mouseout", () => tooltip.style("visibility", "hidden"));
-});
+loadAndRenderBarChart();

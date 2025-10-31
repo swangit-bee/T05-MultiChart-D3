@@ -12,6 +12,38 @@ body {
   background: #f7f9fb;
   color: #222;
 }
+
+header {
+  text-align: center;
+  padding: 2rem 1rem 1rem 1rem;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+  font-size: 2rem;
+}
+
+header > p {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.intro-text {
+  max-width: 900px;
+  margin: 1.5rem auto 0 auto;
+  text-align: left;
+  line-height: 1.6;
+}
+
+.intro-text p {
+  margin: 0.75rem 0;
+  color: #444;
+}
+
 .main-container {
   display: flex;
   flex-wrap: wrap;
@@ -19,7 +51,8 @@ body {
   gap: 2rem;
   padding: 2rem;
 }
-.chart-container {
+
+.chart-wrapper {
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
@@ -27,23 +60,49 @@ body {
   min-width: 320px;
   flex: 1 1 400px;
   max-width: 600px;
+  transition: box-shadow 0.2s;
+}
+
+.chart-wrapper:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+
+.chart-wrapper h2 {
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.chart-description {
+  margin: 0 0 1rem 0;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.chart-container {
+  width: 100%;
   min-height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: box-shadow 0.2s;
 }
-.chart-container:hover {
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-}
+
 @media (max-width: 900px) {
   .main-container {
     flex-direction: column;
     gap: 1.5rem;
     padding: 1rem;
   }
-  .chart-container {
+  .chart-wrapper {
     min-width: 0;
     max-width: 100%;
+  }
+  header h1 {
+    font-size: 1.5rem;
+  }
+  .intro-text {
+    font-size: 0.9rem;
   }
 }
